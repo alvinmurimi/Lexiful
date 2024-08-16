@@ -1,0 +1,9 @@
+input_file: 'descriptions.csv'
+csv_description_column: 1  # 0-based index of the description column for CSV files
+csv_encodings: ['utf-8', 'iso-8859-1', 'windows-1252']
+conjunctions: ['and', '&', '+']
+ngram_size: 3
+embedding_size: 100
+window_size: 5
+max_edit_distance: 2
+model_file: 'lexiful.pkl'
