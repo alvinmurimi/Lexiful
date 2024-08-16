@@ -15,7 +15,6 @@ import logging
 from typing import List, Dict, Tuple
 import yaml
 import argparse
-from functools import lru_cache
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -30,8 +29,9 @@ class Lexiful:
         self.preprocessed_descriptions = [self.preprocess(desc) for desc in self.descriptions]
         self.abbreviations = self.generate_abbreviations()
         self.word_embeddings = self.train_word_embeddings()
-        self._word_freq = self.build_word_frequency()
-        self._ngram_freq = self.build_ngram_frequency(self.config['ngram_size'])
+        self.word_vectors = {word: self.word_embeddings[word] for word in self.word_embeddings.key_to_index}
+        self.word_freq = self.build_word_frequency()
+        self.ngram_freq = self.build_ngram_frequency(self.config['ngram_size'])
         self.phonetic_map = self.build_phonetic_map()
         self.user_corrections = {}
 
@@ -234,48 +234,48 @@ class Lexiful:
             corrected_words.append(self.find_closest_word(word, context))
         return ' '.join(corrected_words)
 
+    def get_fixed_vector(self, words, dim=100):
+        vectors = [self.word_embeddings[w] for w in words if w in self.word_embeddings]
+        if not vectors:
+            return np.zeros(dim)
+        return np.mean(vectors, axis=0)
+
+
     def match(self, input_text: str, threshold: float = 70, max_matches: int = 5) -> List[str]:
-        # Remove non-alphabetic characters and convert to uppercase
         processed_input = re.sub(r'[^a-zA-Z&]', '', input_text.upper())
         
-        # Check if input is an abbreviation
         if processed_input in self.abbreviations:
             return self.abbreviations[processed_input][:max_matches]
         
         preprocessed_input = self.preprocess(input_text)
         input_words = preprocessed_input.split()
         
-        # Apply spelling correction
         corrected_input = self.correct_input(preprocessed_input)
         
-        matches = []
-        for i, desc in enumerate(self.preprocessed_descriptions):
-            # Calculate fuzzy match ratio
-            ratio = fuzz.partial_ratio(corrected_input, desc)
-            
-            desc_words = desc.split()
-            if set(input_words) & set(desc_words):
-                # Calculate embedding similarity
-                input_vec = np.mean([self.word_embeddings[w] for w in input_words if w in self.word_embeddings], axis=0)
-                desc_vec = np.mean([self.word_embeddings[w] for w in desc_words if w in self.word_embeddings], axis=0)
-                if input_vec.size and desc_vec.size:
-                    embedding_sim = np.dot(input_vec, desc_vec) / (np.linalg.norm(input_vec) * np.linalg.norm(desc_vec))
-                    ratio = max(ratio, embedding_sim * 100)
-            
-            # Calculate edit distance ratio
-            edit_dist = self.levenshtein_distance(corrected_input, desc)
-            max_len = max(len(corrected_input), len(desc))
-            edit_ratio = (max_len - edit_dist) / max_len * 100 if max_len > 0 else 0
-            
-            final_ratio = max(ratio, edit_ratio)
-            
-            if final_ratio >= threshold:
-                matches.append((self.descriptions[i], final_ratio))
+        input_vec = input_vec = self.get_fixed_vector(input_words)
         
-        # Sort matches by ratio and return top results
+        desc_vecs = np.array([self.get_fixed_vector(desc.split()) for desc in self.preprocessed_descriptions])
+        
+        # Vectorized cosine similarity calculation
+        epsilon = 1e-8  # Small value to prevent division by zero
+        similarities = np.dot(desc_vecs, input_vec) / (np.linalg.norm(desc_vecs, axis=1) * np.linalg.norm(input_vec) + epsilon)
+        similarities = np.nan_to_num(similarities * 100, 0)
+        
+        # Vectorized fuzzy matching
+        fuzzy_ratios = np.array([fuzz.partial_ratio(corrected_input, desc) for desc in self.preprocessed_descriptions])
+        
+        # Combine similarities and fuzzy ratios
+        final_ratios = np.maximum(similarities, fuzzy_ratios)
+        
+        # Early termination: Only process matches above threshold
+        above_threshold = final_ratios >= threshold
+        if np.sum(above_threshold) == 0:
+            return []
+        
+        matches = list(zip(np.array(self.descriptions)[above_threshold], final_ratios[above_threshold]))
         matches.sort(key=lambda x: x[1], reverse=True)
+        
         return [match[0] for match in matches[:max_matches]]
-
     def learn_correction(self, original_word: str, corrected_word: str):
         # Add user-defined correction to the dictionary
         self.user_corrections[original_word] = corrected_word
@@ -290,13 +290,3 @@ class Lexiful:
         # Load a serialized model from a file
         with open(filename, 'rb') as f:
             return pickle.load(f)
-
-    @property
-    @lru_cache(maxsize=None)
-    def word_freq(self):
-        return self._word_freq
-
-    @property
-    @lru_cache(maxsize=None)
-    def ngram_freq(self):
-        return self._ngram_freq
