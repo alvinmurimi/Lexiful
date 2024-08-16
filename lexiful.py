@@ -240,19 +240,20 @@ class Lexiful:
             return np.zeros(dim)
         return np.mean(vectors, axis=0)
 
-
     def match(self, input_text: str, threshold: float = 70, max_matches: int = 5) -> List[str]:
         processed_input = re.sub(r'[^a-zA-Z&]', '', input_text.upper())
         
+        # Check if input is an abbreviation
         if processed_input in self.abbreviations:
             return self.abbreviations[processed_input][:max_matches]
         
         preprocessed_input = self.preprocess(input_text)
         input_words = preprocessed_input.split()
         
+        # Apply spelling correction
         corrected_input = self.correct_input(preprocessed_input)
         
-        input_vec = input_vec = self.get_fixed_vector(input_words)
+        input_vec = self.get_fixed_vector(input_words)
         
         desc_vecs = np.array([self.get_fixed_vector(desc.split()) for desc in self.preprocessed_descriptions])
         
@@ -276,6 +277,7 @@ class Lexiful:
         matches.sort(key=lambda x: x[1], reverse=True)
         
         return [match[0] for match in matches[:max_matches]]
+
     def learn_correction(self, original_word: str, corrected_word: str):
         # Add user-defined correction to the dictionary
         self.user_corrections[original_word] = corrected_word
@@ -290,3 +292,98 @@ class Lexiful:
         # Load a serialized model from a file
         with open(filename, 'rb') as f:
             return pickle.load(f)
+
+    def update_model(self, new_descriptions: List[str]):
+        # Preprocess new descriptions
+        new_preprocessed = [self.preprocess(desc) for desc in new_descriptions]
+        
+        # Update descriptions and preprocessed_descriptions
+        self.descriptions.extend(new_descriptions)
+        self.preprocessed_descriptions.extend(new_preprocessed)
+        
+        # Update word embeddings
+        new_sentences = [simple_preprocess(desc) for desc in new_descriptions]
+        new_model = Word2Vec(new_sentences, vector_size=self.config['embedding_size'], window=self.config['window_size'], min_count=1, workers=4)
+        
+        # Convert dict_keys to list
+        new_words = list(new_model.wv.key_to_index.keys())
+        self.word_embeddings.add_vectors(new_words, new_model.wv.vectors)
+        
+        # Update word vectors
+        self.word_vectors.update({word: self.word_embeddings[word] for word in new_words if word not in self.word_vectors})
+        
+        # Update word frequency
+        new_words = [word for desc in new_descriptions for word in simple_preprocess(desc)]
+        self.word_freq.update(new_words)
+        
+        # Update ngram frequency
+        for desc in new_descriptions:
+            words = simple_preprocess(desc)
+            self.ngram_freq.update(ngrams(words, self.config['ngram_size']))
+        
+        # Update phonetic map
+        for word in set(new_words):
+            soundex_code = soundex(word)
+            metaphone_code = metaphone(word)
+            if soundex_code not in self.phonetic_map:
+                self.phonetic_map[soundex_code] = []
+            if metaphone_code not in self.phonetic_map:
+                self.phonetic_map[metaphone_code] = []
+            self.phonetic_map[soundex_code].append(word)
+            self.phonetic_map[metaphone_code].append(word)
+        
+        # Update abbreviations
+        new_abbr = self.generate_abbreviations_for_descriptions(new_descriptions)
+        for abbr, descs in new_abbr.items():
+            if abbr in self.abbreviations:
+                self.abbreviations[abbr].extend(descs)
+            else:
+                self.abbreviations[abbr] = descs
+
+    def generate_abbreviations_for_descriptions(self, descriptions: List[str]) -> Dict[str, List[str]]:
+        abbr_dict = {}
+        conjunctions = self.config['conjunctions']
+        
+        for desc in descriptions:
+            words = desc.split()
+            
+            # Generate standard abbreviation (e.g., "ABC" for "Alpha Beta Company")
+            if len(words) > 1:
+                abbr = ''.join(word[0].upper() for word in words)
+                if abbr not in abbr_dict:
+                    abbr_dict[abbr] = []
+                abbr_dict[abbr].append(desc)
+            
+            # Generate abbreviations with conjunctions
+            for conj in conjunctions:
+                if conj in words:
+                    conj_indices = [i for i, word in enumerate(words) if word == conj]
+                    for idx in conj_indices:
+                        # Full abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta")
+                        abbr_full = ''.join(word[0].upper() for word in words[:idx]) + conj + ''.join(word[0].upper() for word in words[idx+1:])
+                        if abbr_full not in abbr_dict:
+                            abbr_dict[abbr_full] = []
+                        abbr_dict[abbr_full].append(desc)
+                        
+                        # Short abbreviation without conjunction (e.g., "AB" for "Alpha and Beta")
+                        abbr_short = ''.join(word[0].upper() for word in words if word != conj)
+                        if abbr_short not in abbr_dict:
+                            abbr_dict[abbr_short] = []
+                        abbr_dict[abbr_short].append(desc)
+                        
+                        # Two-letter abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta Company")
+                        if idx > 0 and idx < len(words) - 1:
+                            abbr_two = words[idx-1][0].upper() + conj + words[idx+1][0].upper()
+                            if abbr_two not in abbr_dict:
+                                abbr_dict[abbr_two] = []
+                            abbr_dict[abbr_two].append(desc)
+            
+            # Handle 'of' separately (e.g., "DOJ" for "Department of Justice")
+            if 'of' in words:
+                of_index = words.index('of')
+                abbr_of = ''.join(word[0].upper() for word in words if words.index(word) != of_index)
+                if abbr_of not in abbr_dict:
+                    abbr_dict[abbr_of] = []
+                abbr_dict[abbr_of].append(desc)
+
+        return abbr_dict
