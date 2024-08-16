@@ -14,7 +14,8 @@ from nltk.util import ngrams
 import logging
 from typing import List, Dict, Tuple
 import yaml
-import argparse
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -28,10 +29,10 @@ class Lexiful:
         self.stop_words = set(stopwords.words('english'))
         self.preprocessed_descriptions = [self.preprocess(desc) for desc in self.descriptions]
         self.abbreviations = self.generate_abbreviations()
-        self.word_embeddings = self.train_word_embeddings()
-        self.word_vectors = {word: self.word_embeddings[word] for word in self.word_embeddings.key_to_index}
+        self.tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+        self.tfidf_matrix = self.tfidf_vectorizer.fit_transform(self.preprocessed_descriptions)
         self.word_freq = self.build_word_frequency()
-        self.ngram_freq = self.build_ngram_frequency(self.config['ngram_size'])
+        self.ngram_freq = self.build_ngram_frequency(self.config.get('ngram_size', 3))
         self.phonetic_map = self.build_phonetic_map()
         self.user_corrections = {}
 
@@ -150,6 +151,14 @@ class Lexiful:
         # Count word occurrences across all descriptions
         words = [word for desc in self.descriptions for word in simple_preprocess(desc)]
         return Counter(words)
+    
+    def build_ngram_frequency(self, n: int) -> Counter:
+        # Build n-gram frequency distribution
+        ngram_freq = Counter()
+        for desc in self.descriptions:
+            words = simple_preprocess(desc)
+            ngram_freq.update(ngrams(words, n))
+        return ngram_freq
 
     def build_ngram_frequency(self, n: int) -> Counter:
         # Build n-gram frequency distribution
@@ -248,19 +257,16 @@ class Lexiful:
             return self.abbreviations[processed_input][:max_matches]
         
         preprocessed_input = self.preprocess(input_text)
-        input_words = preprocessed_input.split()
         
         # Apply spelling correction
         corrected_input = self.correct_input(preprocessed_input)
         
-        input_vec = self.get_fixed_vector(input_words)
+        # Use TF-IDF for vectorization and cosine similarity
+        input_vector = self.tfidf_vectorizer.transform([corrected_input])
+        cosine_similarities = cosine_similarity(input_vector, self.tfidf_matrix).flatten()
         
-        desc_vecs = np.array([self.get_fixed_vector(desc.split()) for desc in self.preprocessed_descriptions])
-        
-        # Vectorized cosine similarity calculation
-        epsilon = 1e-8  # Small value to prevent division by zero
-        similarities = np.dot(desc_vecs, input_vec) / (np.linalg.norm(desc_vecs, axis=1) * np.linalg.norm(input_vec) + epsilon)
-        similarities = np.nan_to_num(similarities * 100, 0)
+        # Convert similarities to percentages
+        similarities = cosine_similarities * 100
         
         # Vectorized fuzzy matching
         fuzzy_ratios = np.array([fuzz.partial_ratio(corrected_input, desc) for desc in self.preprocessed_descriptions])
@@ -268,16 +274,17 @@ class Lexiful:
         # Combine similarities and fuzzy ratios
         final_ratios = np.maximum(similarities, fuzzy_ratios)
         
-        # Early termination: Only process matches above threshold
+        # Apply threshold
         above_threshold = final_ratios >= threshold
         if np.sum(above_threshold) == 0:
             return []
         
-        matches = list(zip(np.array(self.descriptions)[above_threshold], final_ratios[above_threshold]))
-        matches.sort(key=lambda x: x[1], reverse=True)
+        # Get top matches
+        top_indices = np.argsort(final_ratios)[-max_matches:][::-1]
+        matches = [(self.descriptions[i], final_ratios[i]) for i in top_indices if final_ratios[i] >= threshold]
         
-        return [match[0] for match in matches[:max_matches]]
-
+        return [match[0] for match in matches]
+    
     def learn_correction(self, original_word: str, corrected_word: str):
         # Add user-defined correction to the dictionary
         self.user_corrections[original_word] = corrected_word
