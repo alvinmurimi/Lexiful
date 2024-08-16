@@ -1,2 +1,2 @@
 # Lexiful
-NLP tool for medical descriptions matching
+Lexiful is an advanced NLP-powered tool designed to intelligently match and correct medical descriptions with precision. Utilizing state-of-the-art techniques such as fuzzy matching, word embeddings, and abbreviation recognition, Lexiful processes and refines input text to accurately identify corresponding medical terms. It seamlessly handles typos, abbreviations, and complex linguistic variations, ensuring that even imperfect or shorthand inputs are matched to their correct counterparts. With its robust core and adaptive language processing capabilities, Lexiful is an essential resource for healthcare professionals and developers looking to enhance accuracy in medical documentation and data management
