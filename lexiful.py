@@ -15,6 +15,7 @@ import logging
 from typing import List, Dict, Tuple
 import yaml
 import argparse
+from functools import lru_cache
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -29,8 +30,8 @@ class Lexiful:
         self.preprocessed_descriptions = [self.preprocess(desc) for desc in self.descriptions]
         self.abbreviations = self.generate_abbreviations()
         self.word_embeddings = self.train_word_embeddings()
-        self.word_freq = self.build_word_frequency()
-        self.ngram_freq = self.build_ngram_frequency(self.config['ngram_size'])
+        self._word_freq = self.build_word_frequency()
+        self._ngram_freq = self.build_ngram_frequency(self.config['ngram_size'])
         self.phonetic_map = self.build_phonetic_map()
         self.user_corrections = {}
 
@@ -289,3 +290,13 @@ class Lexiful:
         # Load a serialized model from a file
         with open(filename, 'rb') as f:
             return pickle.load(f)
+
+    @property
+    @lru_cache(maxsize=None)
+    def word_freq(self):
+        return self._word_freq
+
+    @property
+    @lru_cache(maxsize=None)
+    def ngram_freq(self):
+        return self._ngram_freq
