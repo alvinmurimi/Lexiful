@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lexiful</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #input { width: 100%; padding: 10px; font-size: 16px; }
+        #suggestions { list-style-type: none; padding: 0; }
+        #suggestions li { cursor: pointer; padding: 5px; }
+        #suggestions li:hover { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>Lexiful</h1>
+    <input type="text" id="input" placeholder="Enter description...">
+    <ul id="suggestions"></ul>
+
+    <script>
+        $(document).ready(function() {
+            let typingTimer;
+            const doneTypingInterval = 300;
+
+            $('#input').on('input', function() {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(getSuggestions, doneTypingInterval);
+            });
+
+            function getSuggestions() {
+                const input = $('#input').val();
+                if (input.length < 2) {
+                    $('#suggestions').empty();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/suggest',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ input: input }),
+                    success: function(suggestions) {
+                        $('#suggestions').empty();
+                        suggestions.forEach(function(suggestion) {
+                            $('#suggestions').append(`<li>${suggestion}</li>`);
+                        });
+                    }
+                });
+            }
+
+            $(document).on('click', '#suggestions li', function() {
+                $('#input').val($(this).text());
+                $('#suggestions').empty();
+            });
+        });
+    </script>
+</body>
+</html>
