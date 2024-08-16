@@ -4,7 +4,7 @@ from main import Lexiful
 app = Flask(__name__)
 
 # Load the model
-matcher = Lexiful.load_model('lexiful.pkl')
+matcher = Lexiful('config.yaml')
 
 @app.route('/')
 def index():
