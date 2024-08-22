@@ -1,109 +1,113 @@
-# Lexiful: Advanced Text Matching Tool
+# Lexiful: Intelligent Text Matching and Correction Engine
 
-Lexiful is a sophisticated text matching and suggestion tool designed for efficient and accurate text processing. It utilizes various natural language processing techniques to provide intelligent matching and highly accurate correction capabilities.
+Lexiful is a lightweight natural language processing engine designed for high-precision text matching, intelligent suggestion, and advanced correction capabilities. It leverages cutting-edge NLP techniques to provide accuracy and flexibility in text processing tasks, particularly in industry-specific scenarios.
 
 ## Features
 
-- TF-IDF vectorization and cosine similarity for precise text matching
-- Fuzzy matching algorithms for enhanced accuracy and flexibility
-- Context-aware spelling correction with customizable edit distance thresholds
-- Comprehensive abbreviation handling and generation capabilities
-- Phonetic matching using Soundex and Metaphone algorithms
-- N-gram frequency analysis for improved context understanding
-- Word embedding support for capturing semantic relationships
-- Highly customizable via YAML configuration
-- Command-line interface for efficient batch processing
-- Web interface for interactive text analysis and matching
+- **Intelligent Text Matching**: Utilizes TF-IDF vectorization and cosine similarity for precise matching results.
+- **Fuzzy Matching Algorithms**: Implements fuzzy matching for enhanced accuracy and flexibility.
+- **Context-Aware Spelling Correction**: Offers sophisticated spelling correction with customizable edit distance thresholds.
+- **Comprehensive Abbreviation Handling**: Generates and processes abbreviations intelligently.
+- **Phonetic Matching**: Employs Soundex and Metaphone algorithms for sound-based text matching.
+- **N-gram Frequency Analysis**: Enhances context understanding through n-gram analysis.
+- **Word Embedding Support**: Captures semantic relationships using word embeddings.
+- **Highly Customizable**: Configurable via YAML for tailored performance.
+- **Adaptive Learning**: Supports model updates and user-defined corrections for continuous improvement.
+
+## Industry-Specific Applications
+
+Lexiful is designed as a robust solution for industry-specific scenarios where matching user input against predefined data is crucial. It excels in scenarios where precise matching against predefined datasets is crucial, offering:
+
+- Targeted Matching: Optimized for specific industry terminologies and data structures.
+- Data Consistency: Reduces free-type errors by matching user input to standardized entries.
+- Efficiency: Faster and more resource-efficient than broad AI models for specific matching tasks.
+- Customizability: Easily adaptable to various industries and specific organizational needs.
+- Privacy-Focused: Operates on local, predefined datasets without relying on external knowledge bases.
+
 
 ## Installation
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/alvinmurimi/lexiful.git
-   cd lexiful
-   ```
+    ```bash
+    git clone https://github.com/yourusername/lexiful.git
+    cd lexiful
+    ```
 
 2. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 3. Download NLTK data:
-   ```
-   python -c "import nltk; nltk.download('stopwords')"
-   ```
+    ```bash
+    python -c "import nltk; nltk.download('stopwords')"
+    ```
 
 ## Configuration
 
 Customize the `config.yaml` file to adjust Lexiful's behavior:
 
 ```yaml
-input_file: 'descriptions.csv'
+input_file: 'text.txt'
 csv_description_column: 1
 csv_encodings: ['utf-8', 'iso-8859-1', 'windows-1252']
-conjunctions: ['and', '&', '+']
+conjunctions: ['and', '&', '+', '/']
+fuzzy_match_algorithm: 'token_set_ratio'
 ngram_size: 3
 embedding_size: 100
 window_size: 5
 max_edit_distance: 2
-model_file: 'lexiful.pkl'
+model_file: 'model.pkl'
 ```
 
 ## Usage
+### Basic Usage
+```python
+from lexiful import Lexiful
 
-### Command Line Interface
+# Initialize Lexiful
+lexiful = Lexiful('config.yaml')
 
-Use the CLI for quick text matching:
-
-```
-python main.py --config config.yaml --input "Your text here" --threshold 70 --matches 5
-```
-
-Options:
-- `--config`: Path to the configuration file (required)
-- `--input`: Input text to match
-- `--threshold`: Matching threshold (default: 70)
-- `--matches`: Maximum number of matches to return (default: 5)
-- `--update`: Path to file containing new descriptions for model update
-
-### Web Interface
-
-Start the Flask web server:
-
-```
-python app.py
+# Match input text
+matches = lexiful.match("Your input text", threshold=60, max_matches=5)
+print(matches)
 ```
 
-Access the web interface at `http://localhost:5000`.
+### Advanced Usage and Model Improvement
+#### User Corrections
+```python
+lexiful.learn_correction("original_word", "corrected_word")
+```
+
+#### Model Updates
+```python
+new_descriptions = ["New description 1", "New description 2"]
+lexiful.update_model(new_descriptions)
+```
+
+#### Save and Load Model
+```python
+# Save model
+lexiful.save_model("model.pkl")
+
+# Load model
+loaded_lexiful = Lexiful.load_model("model.pkl")
+
+```
 
 ## Development
-
-### Updating the Model
-
-To update the model with new descriptions:
-
-1. Prepare a file with new descriptions (one per line).
-2. Run:
-   ```
-   python main.py --config config.yaml --update path/to/new_descriptions.txt
-   ```
-
 ### Extending Functionality
 
-Lexiful is designed to be modular and extensible. Key areas for potential enhancements include:
-- Adding new matching algorithms
-- Implementing additional pre-processing steps
-- Expanding language support
-- Optimizing performance for large datasets
+Lexiful provides a solid starting point for text matching and entity recognition. Key areas for potential enhancements include:
+
+- Implementing more sophisticated pre-processing steps in the preprocess method
+- Adding new matching algorithms to the match method
+- Expanding language support by incorporating multilingual resources
+- Optimizing performance for large datasets through efficient data structures
+- Fully integrating word embeddings into the matching process
 
 ## Contributing
-
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-
 [MIT License](LICENSE)
-
-## Contact
-
-For questions and support, please open an issue on the GitHub repository.
