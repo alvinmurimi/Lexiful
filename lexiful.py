@@ -28,7 +28,7 @@ class Lexiful:
         self.descriptions = self.load_descriptions(self.config['input_file'])
         self.stop_words = set(stopwords.words('english'))
         self.preprocessed_descriptions = [self.preprocess(desc) for desc in self.descriptions]
-        self.abbreviations = self.generate_abbreviations()
+        self.abbreviations = self.generate_abbreviations(self.descriptions)
         self.tfidf_vectorizer = TfidfVectorizer(stop_words='english')
         self.tfidf_matrix = self.tfidf_vectorizer.fit_transform(self.preprocessed_descriptions)
         self.word_freq = self.build_word_frequency()
@@ -93,11 +93,11 @@ class Lexiful:
         # Remove stopwords and convert to lowercase
         return ' '.join([word.lower() for word in simple_preprocess(text) if word not in self.stop_words])
 
-    def generate_abbreviations(self) -> Dict[str, List[str]]:
+    def generate_abbreviations(self, descriptions: List[str]) -> Dict[str, List[str]]:
         abbr_dict = {}
         conjunctions = self.config['conjunctions']
         
-        for desc in self.descriptions:
+        for desc in descriptions:
             words = desc.split()
             
             # Generate standard abbreviation (e.g., "ABC" for "Alpha Beta Company")
@@ -160,13 +160,7 @@ class Lexiful:
             ngram_freq.update(ngrams(words, n))
         return ngram_freq
 
-    def build_ngram_frequency(self, n: int) -> Counter:
-        # Build n-gram frequency distribution
-        ngram_freq = Counter()
-        for desc in self.descriptions:
-            words = simple_preprocess(desc)
-            ngram_freq.update(ngrams(words, n))
-        return ngram_freq
+
 
     def build_phonetic_map(self) -> Dict[str, List[str]]:
         # Create phonetic mapping for efficient similarity search
@@ -340,57 +334,9 @@ class Lexiful:
             self.phonetic_map[metaphone_code].append(word)
         
         # Update abbreviations
-        new_abbr = self.generate_abbreviations_for_descriptions(new_descriptions)
+        new_abbr = self.generate_abbreviations(new_descriptions)
         for abbr, descs in new_abbr.items():
             if abbr in self.abbreviations:
                 self.abbreviations[abbr].extend(descs)
             else:
                 self.abbreviations[abbr] = descs
-
-    def generate_abbreviations_for_descriptions(self, descriptions: List[str]) -> Dict[str, List[str]]:
-        abbr_dict = {}
-        conjunctions = self.config['conjunctions']
-        
-        for desc in descriptions:
-            words = desc.split()
-            
-            # Generate standard abbreviation (e.g., "ABC" for "Alpha Beta Company")
-            if len(words) > 1:
-                abbr = ''.join(word[0].upper() for word in words)
-                if abbr not in abbr_dict:
-                    abbr_dict[abbr] = []
-                abbr_dict[abbr].append(desc)
-            
-            # Generate abbreviations with conjunctions
-            for conj in conjunctions:
-                if conj in words:
-                    conj_indices = [i for i, word in enumerate(words) if word == conj]
-                    for idx in conj_indices:
-                        # Full abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta")
-                        abbr_full = ''.join(word[0].upper() for word in words[:idx]) + conj + ''.join(word[0].upper() for word in words[idx+1:])
-                        if abbr_full not in abbr_dict:
-                            abbr_dict[abbr_full] = []
-                        abbr_dict[abbr_full].append(desc)
-                        
-                        # Short abbreviation without conjunction (e.g., "AB" for "Alpha and Beta")
-                        abbr_short = ''.join(word[0].upper() for word in words if word != conj)
-                        if abbr_short not in abbr_dict:
-                            abbr_dict[abbr_short] = []
-                        abbr_dict[abbr_short].append(desc)
-                        
-                        # Two-letter abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta Company")
-                        if idx > 0 and idx < len(words) - 1:
-                            abbr_two = words[idx-1][0].upper() + conj + words[idx+1][0].upper()
-                            if abbr_two not in abbr_dict:
-                                abbr_dict[abbr_two] = []
-                            abbr_dict[abbr_two].append(desc)
-            
-            # Handle 'of' separately (e.g., "DOJ" for "Department of Justice")
-            if 'of' in words:
-                of_index = words.index('of')
-                abbr_of = ''.join(word[0].upper() for word in words if words.index(word) != of_index)
-                if abbr_of not in abbr_dict:
-                    abbr_dict[abbr_of] = []
-                abbr_dict[abbr_of].append(desc)
-
-        return abbr_dict
