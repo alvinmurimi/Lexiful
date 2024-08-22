@@ -13,7 +13,7 @@ def index():
 @app.route('/suggest', methods=['POST'])
 def suggest():
     input_text = request.json['input']
-    suggestions = matcher.match(input_text, max_matches=5)
+    suggestions = matcher.match(input_text, max_matches=10)
     return jsonify(suggestions)
 
 if __name__ == '__main__':
