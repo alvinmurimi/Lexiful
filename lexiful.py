@@ -100,12 +100,10 @@ class Lexiful:
         for desc in descriptions:
             words = desc.split()
             
-            # Generate standard abbreviation (e.g., "ABC" for "Alpha Beta Company")
+            # Standard abbreviation (e.g., "ABC" for "Alpha Beta Company")
             if len(words) > 1:
                 abbr = ''.join(word[0].upper() for word in words)
-                if abbr not in abbr_dict:
-                    abbr_dict[abbr] = []
-                abbr_dict[abbr].append(desc)
+                abbr_dict.setdefault(abbr, []).append(desc)
             
             # Generate abbreviations with conjunctions
             for conj in conjunctions:
@@ -114,32 +112,29 @@ class Lexiful:
                     for idx in conj_indices:
                         # Full abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta")
                         abbr_full = ''.join(word[0].upper() for word in words[:idx]) + conj + ''.join(word[0].upper() for word in words[idx+1:])
-                        if abbr_full not in abbr_dict:
-                            abbr_dict[abbr_full] = []
-                        abbr_dict[abbr_full].append(desc)
+                        abbr_dict.setdefault(abbr_full, []).append(desc)
                         
                         # Short abbreviation without conjunction (e.g., "AB" for "Alpha and Beta")
                         abbr_short = ''.join(word[0].upper() for word in words if word != conj)
-                        if abbr_short not in abbr_dict:
-                            abbr_dict[abbr_short] = []
-                        abbr_dict[abbr_short].append(desc)
+                        abbr_dict.setdefault(abbr_short, []).append(desc)
                         
                         # Two-letter abbreviation with conjunction (e.g., "A&B" for "Alpha and Beta Company")
                         if idx > 0 and idx < len(words) - 1:
                             abbr_two = words[idx-1][0].upper() + conj + words[idx+1][0].upper()
-                            if abbr_two not in abbr_dict:
-                                abbr_dict[abbr_two] = []
-                            abbr_dict[abbr_two].append(desc)
+                            abbr_dict.setdefault(abbr_two, []).append(desc)
             
             # Handle 'of' separately (e.g., "DOJ" for "Department of Justice")
             if 'of' in words:
                 of_index = words.index('of')
                 abbr_of = ''.join(word[0].upper() for word in words if words.index(word) != of_index)
-                if abbr_of not in abbr_dict:
-                    abbr_dict[abbr_of] = []
-                abbr_dict[abbr_of].append(desc)
+                abbr_dict.setdefault(abbr_of, []).append(desc)
+            
+            # Generate phonetic abbreviations
+            phonetic_abbr = ''.join(metaphone(word)[0] if metaphone(word) else '' for word in words)
+            abbr_dict.setdefault(phonetic_abbr, []).append(desc)
 
         return abbr_dict
+
 
     def train_word_embeddings(self):
         # Train Word2Vec model on preprocessed descriptions
@@ -244,15 +239,15 @@ class Lexiful:
         return np.mean(vectors, axis=0)
 
     def match(self, input_text: str, threshold: float = 70, max_matches: int = 5) -> List[str]:
+        # Remove non-alphanumeric characters and convert to uppercase
         processed_input = re.sub(r'[^a-zA-Z&]', '', input_text.upper())
         
-        # Check if input is an abbreviation
+        # Check if input is a known abbreviation
         if processed_input in self.abbreviations:
             return self.abbreviations[processed_input][:max_matches]
         
+        # Preprocess and correct the input
         preprocessed_input = self.preprocess(input_text)
-        
-        # Apply spelling correction
         corrected_input = self.correct_input(preprocessed_input)
         
         # Use TF-IDF for vectorization and cosine similarity
@@ -262,8 +257,11 @@ class Lexiful:
         # Convert similarities to percentages
         similarities = cosine_similarities * 100
         
-        # Vectorized fuzzy matching
-        fuzzy_ratios = np.array([fuzz.partial_ratio(corrected_input, desc) for desc in self.preprocessed_descriptions])
+        # Use the configured fuzzy matching algorithm
+        fuzzy_func = getattr(fuzz, self.config.get('fuzzy_match_algorithm', 'partial_ratio'))
+        
+        # Perform fuzzy matching
+        fuzzy_ratios = np.array([fuzzy_func(corrected_input, desc) for desc in self.preprocessed_descriptions])
         
         # Combine similarities and fuzzy ratios
         final_ratios = np.maximum(similarities, fuzzy_ratios)
@@ -277,6 +275,7 @@ class Lexiful:
         top_indices = np.argsort(final_ratios)[-max_matches:][::-1]
         matches = [(self.descriptions[i], final_ratios[i]) for i in top_indices if final_ratios[i] >= threshold]
         
+        # Return the matched descriptions
         return [match[0] for match in matches]
     
     def learn_correction(self, original_word: str, corrected_word: str):
