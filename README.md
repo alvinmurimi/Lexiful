@@ -94,7 +94,59 @@ lexiful.save_model("model.pkl")
 loaded_lexiful = Lexiful.load_model("model.pkl")
 
 ```
+### Testing the Model
+We use [`test.py`](test.py) to evaluate our model's performance on medical terminology. The model is trained on data from [`descriptions.csv`](descriptions.csv), which contains 11 medical terms.
 
+#### Test Categories
+- **Standard Inputs**: Tests partial terms and common medical phrases.
+- **Abbreviation**: Checks recognition of medical acronyms.
+- **Fuzzy Matching**: Evaluates handling of misspellings and typos.
+- **Phonetic Matching**: Tests ability to match phonetically similar inputs.
+
+#### Test Results
+Below is the output after running `test.py`.
+```
+## Standard Input Tests
+| Input                   | Matches                               |
+|:------------------------|:--------------------------------------|
+| acute myo inf           | Acute Myocardial Infarction           |
+| COPD                    | Chronic Obstructive Pulmonary Disease |
+| gastro reflux           | Gastroesophageal Reflux Disease       |
+| rheumatoid arth         | Rheumatoid Arthritis                  |
+| diabetus type 2         | Diabetes Mellitus Type 2              |
+| hyper tension           | Hypertension                          |
+| coronary artery dis     | Coronary Artery Disease               |
+| congestive heart failur | Congestive Heart Failure              |
+| osteo arthritis         | Osteoarthritis, Rheumatoid Arthritis  |
+| bronchial asthma        | Asthma                                |
+
+## Abbreviation Tests
+| Input   | Matches                     |
+|:--------|:----------------------------|
+| AMI     | Acute Myocardial Infarction |
+| RA      | Rheumatoid Arthritis        |
+| CAD     | Coronary Artery Disease     |
+| CHF     | Congestive Heart Failure    |
+| OA      | Osteoarthritis              |
+
+## Fuzzy Matching Tests
+| Input                          | Matches                         |
+|:-------------------------------|:--------------------------------|
+| acut myocardial infraction     | Acute Myocardial Infarction     |
+| gastroesophagal reflux desease | Gastroesophageal Reflux Disease |
+| rheumatoid arthritus           | Rheumatoid Arthritis            |
+| diebetes mellitus              | Diabetes Mellitus Type 2        |
+| hipertension                   | Hypertension                    |
+
+## Phonetic Matching Tests
+| Input        | Matches                  |
+|:-------------|:-------------------------|
+| nimonia      | Pneumonia                |
+| asma         | Asthma                   |
+| diubeetees   | Diabetes Mellitus Type 2 |
+| athraitis    | Osteoarthritis           |
+| hipertenshun | Hypertension             |
+```
 ## Development
 ### Extending Functionality
 
