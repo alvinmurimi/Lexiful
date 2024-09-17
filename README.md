@@ -162,6 +162,30 @@ Below are the test results:
 | hipertenshun | Hypertension             |
 ```
 
+### Web Interface Testing
+
+We also provide a simple web interface for testing Lexiful's matching capabilities. This interface is implemented using Flask and can be found in [`app.py`](app.py).
+
+To run the web interface:
+
+1. Ensure you have Flask installed:
+
+    ```bash
+    pip install flask
+    ```
+
+2. Run the Flask application:
+
+    Open a web browser and navigate to <http://localhost:5000>
+
+The web interface provides a simple input field where you can enter text. As you type, suggestions will appear based on Lexiful's matching algorithm.
+
+Example usage:
+
+![Web Interface Screenshot](screenshots/1.png)
+
+This web interface is particularly useful for quick, interactive testing and demonstrations of Lexiful's capabilities.
+
 ## 🚀 Development
 
 ### Extending Functionality
