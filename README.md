@@ -3,14 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![NLP](https://img.shields.io/badge/AI-Natural%20Language%20Processing-brightgreen)](https://en.wikipedia.org/wiki/Natural_language_processing)
-[![Machine Learning](https://img.shields.io/badge/AI-Machine%20Learning-blue)](https://en.wikipedia.org/wiki/Machine_learning)
-[![Text Analysis](https://img.shields.io/badge/AI-Text%20Analysis-orange)](https://en.wikipedia.org/wiki/Text_mining)
-
 
 Lexiful is a powerful, lightweight natural language processing engine designed for high-precision text matching, intelligent suggestion, and advanced correction capabilities. By leveraging cutting-edge NLP techniques, Lexiful provides unparalleled accuracy and flexibility in text processing tasks, particularly in industry-specific scenarios.
-
-<img src="templates/banner.jpg" alt="Lexiful Logo" width="800" height="auto">
 
 ## 🚀 Features
 
@@ -38,7 +32,7 @@ Lexiful is engineered as a robust solution for industry-specific scenarios where
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/lexiful.git
+    git clone https://github.com/alvinmurimi/lexiful.git
     cd lexiful
     ```
 
@@ -117,7 +111,50 @@ We use `test.py` to evaluate our model's performance on medical terminology. The
 - **Fuzzy Matching**: Evaluates handling of misspellings and typos.
 - **Phonetic Matching**: Tests ability to match phonetically similar inputs.
 
-For detailed test results, please refer to the [Test Results](https://github.com/yourusername/lexiful/wiki/Test-Results) page in our Wiki.
+Below are the test results:
+```bash
+## Standard Input Tests
+| Input                   | Matches                               |
+|:------------------------|:--------------------------------------|
+| acute myo inf           | Acute Myocardial Infarction           |
+| COPD                    | Chronic Obstructive Pulmonary Disease |
+| gastro reflux           | Gastroesophageal Reflux Disease       |
+| rheumatoid arth         | Rheumatoid Arthritis                  |
+| diabetus type 2         | Diabetes Mellitus Type 2              |
+| hyper tension           | Hypertension                          |
+| coronary artery dis     | Coronary Artery Disease               |
+| congestive heart failur | Congestive Heart Failure              |
+| osteo arthritis         | Osteoarthritis, Rheumatoid Arthritis  |
+| bronchial asthma        | Asthma                                |
+
+## Abbreviation Tests
+| Input   | Matches                     |
+|:--------|:----------------------------|
+| AMI     | Acute Myocardial Infarction |
+| RA      | Rheumatoid Arthritis        |
+| CAD     | Coronary Artery Disease     |
+| CHF     | Congestive Heart Failure    |
+| OA      | Osteoarthritis              |
+
+## Fuzzy Matching Tests
+| Input                          | Matches                         |
+|:-------------------------------|:--------------------------------|
+| acut myocardial infraction     | Acute Myocardial Infarction     |
+| gastroesophagal reflux desease | Gastroesophageal Reflux Disease |
+| rheumatoid arthritus           | Rheumatoid Arthritis            |
+| diebetes mellitus              | Diabetes Mellitus Type 2        |
+| hipertension                   | Hypertension                    |
+
+## Phonetic Matching Tests
+| Input        | Matches                  |
+|:-------------|:-------------------------|
+| nimonia      | Pneumonia                |
+| asma         | Asthma                   |
+| dayabites   | Diabetes Mellitus Type 2 |
+| athraitis    | Osteoarthritis           |
+| hipertenshun | Hypertension             |
+```
+
 
 ## 🚀 Development
 
