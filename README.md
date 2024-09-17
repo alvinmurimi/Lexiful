@@ -8,15 +8,15 @@ Lexiful is a powerful, lightweight natural language processing engine designed f
 
 ## 🚀 Features
 
-- **🎯 Intelligent Text Matching**: Utilizes TF-IDF vectorization and cosine similarity for precise matching results.
-- **🔍 Fuzzy Matching Algorithms**: Implements advanced fuzzy matching for enhanced accuracy and flexibility.
-- **✏️ Context-Aware Spelling Correction**: Offers sophisticated spelling correction with customizable edit distance thresholds.
-- **📚 Comprehensive Abbreviation Handling**: Generates and processes abbreviations intelligently.
-- **🔊 Phonetic Matching**: Employs Soundex and Metaphone algorithms for sound-based text matching.
-- **📊 N-gram Frequency Analysis**: Enhances context understanding through n-gram analysis.
-- **🧬 Word Embedding Support**: Captures semantic relationships using word embeddings.
-- **⚙️ Highly Customizable**: Configurable via YAML for tailored performance.
-- **🔄 Adaptive Learning**: Supports model updates and user-defined corrections for continuous improvement.
+- **🎯 Text Matching**: Utilizes TF-IDF vectorization and cosine similarity for matching results.
+- **🔍 Fuzzy Matching**: Implements configurable fuzzy matching algorithms for flexible text comparison.
+- **✏️ Basic Spelling Correction**: Offers spelling correction using Levenshtein distance, phonetic matching, and limited context consideration, with customizable edit distance thresholds.
+- **📚 Abbreviation Handling**: Generates and processes various types of abbreviations based on predefined rules.
+- **🔊 Phonetic Matching**: Employs Soundex and Metaphone algorithms for sound-based text comparison.
+- **📊 N-gram Frequency Analysis**: Uses n-gram frequency to support context-based word selection.
+- **🧬 Word Embedding Integration**: Incorporates Word2Vec embeddings for word representation.
+- **⚙️ Configurable**: Customizable via YAML configuration file.
+- **🔄 Updatable Model**: Supports model updates with new descriptions and user-defined corrections.
 
 ## 🏭 Industry-Specific Applications
 
