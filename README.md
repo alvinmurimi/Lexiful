@@ -179,5 +179,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📬 Contact
 
 For any questions or feedback, please open an issue or contact [Alvin Mayende](mailto:alvinmayende@gmail.com)
-
----
