@@ -150,7 +150,7 @@ Below are the test results:
 |:-------------|:-------------------------|
 | nimonia      | Pneumonia                |
 | asma         | Asthma                   |
-| dayabites   | Diabetes Mellitus Type 2 |
+| dayabites    | Diabetes Mellitus Type 2 |
 | athraitis    | Osteoarthritis           |
 | hipertenshun | Hypertension             |
 ```
