@@ -5,8 +5,8 @@ from tabulate import tabulate
 # Create and train the model
 config_file = 'config.yaml'
 lexiful_model = Lexiful(config_file)
-lexiful_model.save_model('medical_lexiful.pkl')
-loaded_model = Lexiful.load_model('medical_lexiful.pkl')
+lexiful_model.save_model('lexiful.pkl')
+loaded_model = Lexiful.load_model('lexiful.pkl')
 
 def run_test(title, inputs, max_matches=3):
     print(f"\n## {title}")
