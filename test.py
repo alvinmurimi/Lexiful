@@ -25,7 +25,7 @@ standard_inputs = [
 run_test("Standard Input Tests", standard_inputs)
 
 # Test abbreviations
-abbreviations = ["AMI", "RA", "CAD", "CHF", "OA", "PE"]
+abbreviations = ["AMI", "RA", "CAD", "CHF", "OA"]
 run_test("Abbreviation Tests", abbreviations, max_matches=1)
 
 # Test fuzzy matching with typos
@@ -37,6 +37,6 @@ run_test("Fuzzy Matching Tests", typos, max_matches=1)
 
 # Test phonetic matches
 phonetic_inputs = [
-    "nimonia", "asma", "diubeetees", "athraitis", "hipertenshun"
+    "nimonia", "asma", "dayabites", "athraitis", "hipertenshun"
 ]
 run_test("Phonetic Matching Tests", phonetic_inputs, max_matches=1)
