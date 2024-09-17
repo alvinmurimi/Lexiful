@@ -31,17 +31,20 @@ Lexiful is engineered as a robust solution for industry-specific scenarios where
 ## 🛠️ Installation
 
 1. Clone the repository:
+
     ```bash
     git clone https://github.com/alvinmurimi/lexiful.git
     cd lexiful
     ```
 
 2. Install the required dependencies:
+
     ```bash
     pip install -r requirements.txt
     ```
 
 3. Download NLTK data:
+
     ```bash
     python -c "import nltk; nltk.download('stopwords')"
     ```
@@ -81,17 +84,20 @@ print(matches)
 ### Advanced Usage and Model Improvement
 
 #### User Corrections
+
 ```python
 lexiful.learn_correction("original_word", "corrected_word")
 ```
 
 #### Model Updates
+
 ```python
 new_descriptions = ["New description 1", "New description 2"]
 lexiful.update_model(new_descriptions)
 ```
 
 #### Save and Load Model
+
 ```python
 # Save model
 lexiful.save_model("model.pkl")
@@ -112,6 +118,7 @@ We use `test.py` to evaluate our model's performance on medical terminology. The
 - **Phonetic Matching**: Tests ability to match phonetically similar inputs.
 
 Below are the test results:
+
 ```bash
 ## Standard Input Tests
 | Input                   | Matches                               |
@@ -154,7 +161,6 @@ Below are the test results:
 | athraitis    | Osteoarthritis           |
 | hipertenshun | Hypertension             |
 ```
-
 
 ## 🚀 Development
 
