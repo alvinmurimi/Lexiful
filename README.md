@@ -182,7 +182,8 @@ The web interface provides a simple input field where you can enter text. As you
 
 Example usage:
 
-![Web Interface Screenshot](screenshots/1.png)
+![Web Interface Screenshot](screenshots/rec.gif)
+
 
 This web interface is particularly useful for quick, interactive testing and demonstrations of Lexiful's capabilities.
 
